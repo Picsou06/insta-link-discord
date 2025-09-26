@@ -1,19 +1,20 @@
 {
-  "name": "insta-chatbot",
+  "name": "insta-link-discord",
   "version": "1.0.0",
-  "description": "instagram chatbot by venomexe",
+  "description": "a bot to link instagram to discord",
   "main": "main.js",
   "scripts": {
     "run": "node main.js",
     "start": "node main.js"
   },
-  "author": "venom-exe",
-  "license": "GNU",
+  "author": "Picsou06",
+  "license": "MIT",
   "dependencies": {
     "@androz2091/insta.js": "^1.6.1",
     "axios": "^1.12.2",
     "dotenv": "^17.2.2",
     "instagram_mqtt": "^1.2.3",
+    "jimp": "^1.6.0",
     "node-fetch": "^2.6.0"
   }
 }
