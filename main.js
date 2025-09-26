@@ -207,11 +207,11 @@ async function connectWithRetry(maxRetries = 3) {
 			// Vérifier si c'est l'erreur spécifique 401 "Please wait a few minutes"
 			if (error.message.includes('401 Unauthorized') && error.message.includes('Please wait a few minutes')) {
 				console.log('Erreur 401 détectée - Instagram demande d\'attendre');
-				const waitTime = 5; // 5 minutes
+				const waitTime = 15; // 15 minutes
 				await sendWaitNotification(waitTime);
 				
 				console.log(`Attente de ${waitTime} minutes avant de réessayer...`);
-				await new Promise(resolve => setTimeout(resolve, waitTime * 60000)); // 5 minutes en millisecondes
+				await new Promise(resolve => setTimeout(resolve, waitTime * 60000)); // 15 minutes en millisecondes
 				
 				// Réessayer immédiatement après l'attente
 				console.log('Fin de l\'attente, nouvelle tentative de connexion...');
