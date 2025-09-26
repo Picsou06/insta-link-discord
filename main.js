@@ -98,9 +98,24 @@ client.on('connected', () => {
 });
 
 // Gérer les erreurs de polling
-client.on('error', (error) => {
+client.on('error', async (error) => {
 	pollingErrorCount++;
 	console.error(`Erreur du client Instagram (${pollingErrorCount}/${MAX_POLLING_ERRORS}):`, error.message);
+	
+	// Vérifier si c'est l'erreur spécifique 401 "Please wait a few minutes"
+	if (error.message.includes('401 Unauthorized') && error.message.includes('Please wait a few minutes')) {
+		console.log('Erreur 401 détectée pendant le polling - Instagram demande d\'attendre');
+		const waitTime = 5; // 5 minutes
+		await sendWaitNotification(waitTime);
+		
+		console.log(`Pause de ${waitTime} minutes avant de reprendre le polling...`);
+		setTimeout(() => {
+			pollingErrorCount = 0;
+			console.log('Fin de l\'attente, reprise du polling...');
+		}, waitTime * 60000); // 5 minutes en millisecondes
+		
+		return; // Ne pas compter cette erreur dans le compteur normal
+	}
 	
 	// Si trop d'erreurs, attendre avant de continuer
 	if (pollingErrorCount >= MAX_POLLING_ERRORS) {
@@ -150,6 +165,24 @@ client.on('messageCreate', async (message) => {
 	}
 });
 
+// Fonction pour envoyer une notification d'attente sur Discord
+async function sendWaitNotification(waitTimeMinutes) {
+	try {
+		const webhookData = {
+			username: 'Instagram Bot - INFO',
+			avatar_url: null,
+			content: `⏳ Instagram demande d'attendre ${waitTimeMinutes} minutes avant de réessayer. Bot en pause...`
+		};
+		
+		await axios.post(DISCORD_WEBHOOK_URL, webhookData, {
+			timeout: 10000
+		});
+		console.log(`Notification d'attente de ${waitTimeMinutes} minutes envoyée sur Discord`);
+	} catch (error) {
+		console.error('Erreur lors de l\'envoi de la notification d\'attente:', error.message);
+	}
+}
+
 // Fonction pour se connecter avec gestion d'erreur
 async function connectWithRetry(maxRetries = 3) {
 	// Vérification des variables d'environnement
@@ -170,6 +203,20 @@ async function connectWithRetry(maxRetries = 3) {
 			return;
 		} catch (error) {
 			console.error(`Erreur de connexion (tentative ${i + 1}/${maxRetries}):`, error.message);
+			
+			// Vérifier si c'est l'erreur spécifique 401 "Please wait a few minutes"
+			if (error.message.includes('401 Unauthorized') && error.message.includes('Please wait a few minutes')) {
+				console.log('Erreur 401 détectée - Instagram demande d\'attendre');
+				const waitTime = 5; // 5 minutes
+				await sendWaitNotification(waitTime);
+				
+				console.log(`Attente de ${waitTime} minutes avant de réessayer...`);
+				await new Promise(resolve => setTimeout(resolve, waitTime * 60000)); // 5 minutes en millisecondes
+				
+				// Réessayer immédiatement après l'attente
+				console.log('Fin de l\'attente, nouvelle tentative de connexion...');
+				continue;
+			}
 			
 			if (i < maxRetries - 1) {
 				const delay = (i + 1) * 10000; // Délai croissant: 10s, 20s, 30s
