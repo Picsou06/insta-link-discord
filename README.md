@@ -21,11 +21,6 @@ This Instagram bot automatically forwards received private messages to a Discord
    npm install
    ```
 
-3. **Install all required dependencies with correct versions**
-   ```bash
-   npm install @discordjs/collection jimp get-urls@10.0.1 instagram-private-api@1.41.0 instagram_mqtt@0.2.16 dotenv
-   ```
-
 ## ⚙️ Configuration
 
 1. **Create configuration file**
